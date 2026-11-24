@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TabPilot Interactive MVP Playground</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar { background: #0f2c59; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e3a8a; }
+    .topbar h1 { font-size: 18px; }
+    .topbar span { font-size: 12px; color: #93c5fd; }
+    .workspace { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; padding: 18px; flex: 1; }
+    .browser-pane, .pilot-pane { background: #1e293b; border-radius: 12px; border: 1px solid #334155; overflow: hidden; display: flex; flex-direction: column; }
+    .tab-bar { background: #0f172a; padding: 8px 12px 0; display: flex; gap: 6px; }
+    .tab { background: #1e293b; color: #94a3b8; padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 12px; border: 1px solid #334155; border-bottom: none; }
+    .tab.active { background: #334155; color: #fff; font-weight: 600; }
+    .page-view { padding: 20px; flex: 1; }
+    .page-view h2 { color: #38bdf8; margin-bottom: 10px; font-size: 18px; }
+    .spec-box { background: #0f172a; padding: 14px; border-radius: 8px; margin-top: 12px; line-height: 1.6; font-size: 13px; color: #cbd5e1; }
+    .fine-print { margin-top: 12px; font-size: 11px; color: #94a3b8; border-top: 1px dashed #334155; padding-top: 8px; }
+    .pilot-header { background: #146c94; padding: 12px 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .pilot-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+    select { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 13px; margin-top: 6px; }
+    button { background: #0284c7; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    button:hover { background: #0369a1; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; background: #0f172a; border-radius: 8px; overflow: hidden; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #1e293b; }
+    th { background: #0f2c59; color: #bae6fd; }
+    .alert { background: rgba(220, 38, 38, 0.15); border-left: 3px solid #ef4444; padding: 10px; border-radius: 6px; font-size: 12px; color: #fecaca; }
+    .check { display: flex; gap: 8px; align-items: center; font-size: 12.5px; margin-bottom: 6px; }
+    @media (max-width: 900px) { .workspace { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>TabPilot - Track 2 Interactive Prototype</h1>
+    <span>Team BYTECRAFT - Kumaraguru College of Technology</span>
+  </div>
+  <div class="workspace">
+    <div class="browser-pane">
+      <div class="tab-bar" id="tabBar"></div>
+      <div class="page-view" id="pageView"></div>
+    </div>
+    <div class="pilot-pane">
+      <div class="pilot-header">
+        <span>TabPilot Sidepanel Co-Pilot</span>
+        <button type="button" onclick="speakBriefing()" style="padding:5px 10px; font-size:11px; background:#0f2c59;">Voice Recap</button>
+      </div>
+      <div class="pilot-body">
+        <div>
+          <label for="scenarioSelect" style="font-size:12px; color:#94a3b8;">Scenario Preset</label>
+          <select id="scenarioSelect" onchange="switchScenario()">
+            <option value="laptops">Compare 3 Student Laptops Under Rs. 65,000</option>
+            <option value="flights">Compare 3 International Flight Options</option>
+          </select>
+        </div>
+        <button type="button" onclick="runSynthesis()">Synthesize All Open Tabs into Decision Matrix</button>
+        <div id="outputBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var SCENARIOS = {
+      laptops: {
+        tabs: [
+          { name: "Tab 1: ASUS Vivobook 16", title: "ASUS Vivobook 16 (2026) - Rs. 58,990", body: "AMD Ryzen 7 7730U, 16GB DDR4 RAM, 512GB NVMe SSD, 16-inch FHD+ IPS Anti-Glare, 42Wh Battery.", fine: "Fine print: MS Office trial only; 16GB RAM (8GB onboard + 8GB SO-DIMM)." },
+          { name: "Tab 2: Lenovo IdeaPad Slim 5", title: "Lenovo IdeaPad Slim 5 OLED - Rs. 64,490", body: "Intel Core i5-13500H, 16GB LPDDR5, 512GB SSD, 14-inch WUXGA OLED 400 nits.", fine: "Fine print: High-refresh OLED reduces battery runtime to ~5.5 hrs; RAM is non-upgradable." },
+          { name: "Tab 3: HP Pavilion 15", title: "HP Pavilion 15 - Rs. 56,500", body: "Intel Core i5-1335U, 8GB RAM, 512GB SSD, 15.6-inch Micro-Edge FHD.", fine: "Fine print: Soldered 8GB RAM cannot be upgraded post-purchase." }
+        ],
+        matrix: [
+          ["ASUS Vivobook 16", "Ryzen 7 - 16GB - 16in IPS", "Rs. 58,990", "Best Value"],
+          ["Lenovo Slim 5", "i5-13500H - 16GB - OLED", "Rs. 64,490", "Best Screen"],
+          ["HP Pavilion 15", "i5-1335U - 8GB - 15.6in", "Rs. 56,500", "Avoid (8GB)"]
+        ],
+        alerts: ["HP Pavilion 15 has soldered 8GB RAM (no upgrade slot).", "Lenovo OLED panel lowers battery life to ~5.5 hours."],
+        steps: ["Apply student ID coupon on ASUS/Lenovo portal (-Rs. 3,000)", "Select 16GB RAM SKU before checkout", "Add 1-year Accidental Damage Protection"],
+        voice: "ASUS Vivobook 16 at 58,990 rupees offers the best value with 16 gigabytes of RAM. Avoid the HP Pavilion 15 due to soldered 8 gigabyte memory."
+      },
+      flights: {
+        tabs: [
+          { name: "Tab 1: Air France", title: "Paris to Tokyo - Air France (Rs. 85,000)", body: "1 Stop (CDG), Total Duration: 16h 10m, 1x 23kg Checked Bag included.", fine: "Fine print: Non-refundable economy light fare; seat selection costs extra." },
+          { name: "Tab 2: Japan Airlines", title: "Paris to Tokyo - JAL (Rs. 92,000)", body: "1 Stop (HND), Total Duration: 14h 05m, 2x 23kg Checked Bags included.", fine: "Fine print: Includes complimentary domestic connection and free seat selection." },
+          { name: "Tab 3: Lufthansa", title: "Paris to Tokyo - Lufthansa (Rs. 88,000)", body: "2 Stops (FRA, MUC), Total Duration: 20h 40m, 1x 23kg Checked Bag.", fine: "Fine print: Tight 55-minute layover in Frankfurt." }
+        ],
+        matrix: [
+          ["Air France", "1 Stop - 16h 10m - 1 Bag", "Rs. 85,000", "Cheapest"],
+          ["Japan Airlines", "1 Stop - 14h 05m - 2 Bags", "Rs. 92,000", "Fastest & Best"],
+          ["Lufthansa", "2 Stops - 20h 40m - 1 Bag", "Rs. 88,000", "Long Layover"]
+        ],
+        alerts: ["Lufthansa requires 2 stops with a risky 55-minute layover.", "Air France charges extra for seat selection and is non-refundable."],
+        steps: ["Choose Japan Airlines if carrying 2 bags or valuing 2h+ saved", "Verify passport validity (6+ months)", "Lock fare before dynamic price increase"],
+        voice: "Japan Airlines is the fastest option at 14 hours with two checked bags included, while Air France is 7,000 rupees cheaper with stricter fare rules."
+      }
+    };
+
+    var currentScenario = "laptops";
+    var activeTabIdx = 0;
+
+    function renderBrowser() {
+      var sc = SCENARIOS[currentScenario];
+      var bar = document.getElementById("tabBar");
+      var tabHtml = "";
+      for (var i = 0; i < sc.tabs.length; i++) {
+        var activeClass = i === activeTabIdx ? " active" : "";
+        tabHtml += '<div class="tab' + activeClass + '" onclick="selectTab(' + i + ')">' + sc.tabs[i].name + '</div>';
+      }
+      bar.innerHTML = tabHtml;
+
+      var tab = sc.tabs[activeTabIdx];
+      document.getElementById("pageView").innerHTML =
+        '<h2>' + tab.title + '</h2>' +
+        '<div class="spec-box">' + tab.body + '</div>' +
+        '<div class="fine-print">' + tab.fine + '</div>';
+    }
+
+    function selectTab(i) {
+      activeTabIdx = i;
+      renderBrowser();
+    }
+
+    function switchScenario() {
+      currentScenario = document.getElementById("scenarioSelect").value;
+      activeTabIdx = 0;
+      renderBrowser();
+      runSynthesis();
+    }
+
+    function runSynthesis() {
+      var sc = SCENARIOS[currentScenario];
+      var rows = "";
+      for (var i = 0; i < sc.matrix.length; i++) {
+        var r = sc.matrix[i];
+        rows += '<tr><td><strong>' + r[0] + '</strong></td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td></tr>';
+      }
+
+      var alerts = "";
+      for (var j = 0; j < sc.alerts.length; j++) {
+        alerts += '<li>' + sc.alerts[j] + '</li>';
+      }
+
+      var steps = "";
+      for (var k = 0; k < sc.steps.length; k++) {
+        steps += '<label class="check"><input type="checkbox" /> <span>' + sc.steps[k] + '</span></label>';
+      }
+
+      document.getElementById("outputBox").innerHTML =
+        '<h3 style="font-size:13px; margin:10px 0 6px; color:#38bdf8;">Side-by-Side Decision Matrix</h3>' +
+        '<table><thead><tr><th>Option</th><th>Specs</th><th>Cost</th><th>Verdict</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+        '<h3 style="font-size:13px; margin:12px 0 6px; color:#fca5a5;">Dealbreaker Radar</h3>' +
+        '<div class="alert"><ul style="padding-left:16px;">' + alerts + '</ul></div>' +
+        '<h3 style="font-size:13px; margin:12px 0 6px; color:#86efac;">Guided Action Checklist</h3>' +
+        '<div>' + steps + '</div>';
+    }
+
+    function speakBriefing() {
+      if ("speechSynthesis" in window) {
+        var msg = new SpeechSynthesisUtterance(SCENARIOS[currentScenario].voice);
+        window.speechSynthesis.speak(msg);
+      }
+    }
+
+    renderBrowser();
+    runSynthesis();
+  </script>
+</body>
+</html>

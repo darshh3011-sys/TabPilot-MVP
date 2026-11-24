@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TabPilot Sidepanel</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="tp-header">
+    <div class="tp-brand">
+      <span class="tp-logo">⚡</span>
+      <div>
+        <h1>TabPilot</h1>
+        <p>Action-First Web Co-Pilot · AWS + ElevenLabs</p>
+      </div>
+    </div>
+    <span class="tp-badge">MVP v1.0</span>
+  </header>
+
+  <main class="tp-container">
+    <section class="tp-card">
+      <label for="goalInput" class="tp-label">Your Decision Goal</label>
+      <textarea id="goalInput" rows="2" placeholder="e.g., Compare open options under ₹65,000 and flag hidden trade-offs..."></textarea>
+      <div class="tp-btn-row">
+        <button id="captureTabsBtn" class="btn-primary">Analyze Open Tabs</button>
+        <button id="demoPresetBtn" class="btn-secondary">Load Demo Preset</button>
+      </div>
+      <div id="tabCountStatus" class="tp-status">Ready to scan active browser tabs or run instant demo.</div>
+    </section>
+
+    <section id="resultsArea" class="tp-results hidden">
+      <div class="tp-card">
+        <div class="tp-card-header">
+          <h2>Side-by-Side Decision Matrix</h2>
+          <button id="voiceBtn" class="btn-voice" title="Play ElevenLabs Voice Briefing">🔊 Voice Recap</button>
+        </div>
+        <div class="table-wrap">
+          <table id="matrixTable">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Key Specs / Value</th>
+                <th>Cost</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tp-card tp-alert-card">
+        <h2>⚠️ Dealbreaker & Fine-Print Radar</h2>
+        <ul id="dealbreakersList" class="tp-list"></ul>
+      </div>
+
+      <div class="tp-card">
+        <h2>✅ Guided Action Checklist</h2>
+        <div id="checklistContainer" class="tp-checklist"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

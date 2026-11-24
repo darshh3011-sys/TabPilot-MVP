@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "TabPilot — Action-First Web Co-Pilot",
+  "version": "1.0.0",
+  "description": "Turn cluttered browser tabs into side-by-side decision matrices, dealbreaker alerts, and guided action checklists.",
+  "permissions": ["sidePanel", "activeTab", "tabs", "scripting", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open TabPilot Sidepanel"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}
